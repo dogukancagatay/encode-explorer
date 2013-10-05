@@ -233,12 +233,14 @@ $_CONFIG['require_login'] = false;
 // Kui ühtegi kasutajat märgitud ei ole, siis parooli ei küsita.
 //
 // Usernames and passwords for restricting access to the page.
-// The format is: array(username, password, status)
+// The format is: array(username, password_hash, status)
+// password_hash must be the sha512 hashed value of your password.
+// It can be obtained with this shell command 'printf "your_password" | openssl sha512'
 // Status can be either "user" or "admin". User can read the page, admin can upload and delete.
-// For example: $_CONFIG['users'] = array(array("username1", "password1", "user"), array("username2", "password2", "admin"));
+// For example: $_CONFIG['users'] = array(array("username1", "password_hash1", "user"), array("username2", "password_hash2", "admin"));
 // You can also keep require_login=false and specify an admin. 
 // That way everyone can see the page but username and password are needed for uploading.
-// For example: $_CONFIG['users'] = array(array("username", "password", "admin"));
+// For example: $_CONFIG['users'] = array(array("username", "password_hash", "admin"));
 // Default: $_CONFIG['users'] = array();
 //
 $_CONFIG['users'] = array();
@@ -1771,10 +1773,10 @@ class GateKeeper
 			
 		if(isset($_POST['user_pass']) && strlen($_POST['user_pass']) > 0)
 		{
-			if(GateKeeper::isUser((isset($_POST['user_name'])?$_POST['user_name']:""), $_POST['user_pass']))
+			if(GateKeeper::isUser((isset($_POST['user_name'])?$_POST['user_name']:""), hash("sha512",$_POST['user_pass'])))
 			{
 				$_SESSION['ee_user_name'] = isset($_POST['user_name'])?$_POST['user_name']:"";
-				$_SESSION['ee_user_pass'] = $_POST['user_pass'];
+				$_SESSION['ee_user_pass'] = hash("sha512",$_POST['user_pass']);
 				
 				$addr = $_SERVER['PHP_SELF'];
 				if(isset($_GET['m']))
